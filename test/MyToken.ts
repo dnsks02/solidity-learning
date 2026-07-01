@@ -46,27 +46,36 @@ describe("My Token", () => {
         MINTING_AMOUNT * 10n ** DECIMALS,
       );
     });
-    describe("Transfer", () => {
-      it("should have 0.5MT", async () => {
-        const signer0 = signers[0];
-        const signer1 = signers[1];
-        await expect(
-          myTokenC.transfer(
-            hre.ethers.parseUnits("0.5", DECIMALS),
-            signer1.address,
-          ),
-        )
-          .to.emit(myTokenC, "Transfer")
-          .withArgs(
-            signer0.address,
-            signer1.address,
-            hre.ethers.parseUnits("0.5", DECIMALS),
-          );
 
-        expect(await myTokenC.balanceOf(signer1.address)).equal(
+    it("should return or revert when minting infinitly", async () => {
+      const hacker = signers[2];
+      const mintingAgainAmount = hre.ethers.parseUnits("10000", DECIMALS);
+      await expect(
+        myTokenC.connect(hacker).mint(mintingAgainAmount, hacker.address),
+      ).to.be.revertedWith("You are not authorized to manage this token");
+    });
+  });
+
+  describe("Transfer", () => {
+    it("should have 0.5MT", async () => {
+      const signer0 = signers[0];
+      const signer1 = signers[1];
+      await expect(
+        myTokenC.transfer(
+          hre.ethers.parseUnits("0.5", DECIMALS),
+          signer1.address,
+        ),
+      )
+        .to.emit(myTokenC, "Transfer")
+        .withArgs(
+          signer0.address,
+          signer1.address,
           hre.ethers.parseUnits("0.5", DECIMALS),
         );
-      });
+
+      expect(await myTokenC.balanceOf(signer1.address)).equal(
+        hre.ethers.parseUnits("0.5", DECIMALS),
+      );
 
       it("should be reverted with insufficient balance error", async () => {
         const signer1 = signers[1];
